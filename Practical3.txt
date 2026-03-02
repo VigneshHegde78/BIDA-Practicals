@@ -1,0 +1,11 @@
+1. Create Age Column from BirthDate Column
+= Number.RoundDown(Duration.Days(Date.From(DateTime.LocalNow()) - [BirthDate]) / 365)
+
+2. Number of members in the family
+= (if[MaritalStatus] = "M" then 2 else 1) + [TotalChildren]
+
+3. Family Member per Capita Income
+= Number.RoundUp([AnnualIncome] / [Family Members])
+
+4. Chances of buying a House
+= if([Age] < 50 and [HomeOwner] = "N" and [AnnualIncome] >= 50000) then "Yes" else "No"

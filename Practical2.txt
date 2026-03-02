@@ -1,0 +1,25 @@
+Basic ETL Process
+
+1. Use First Row as Headers
+2. Use Headers as First Row
+3. Transpose
+4. Reverse Rows
+5. Count Rows
+6. Data Type
+7. Detect Data Type
+8. Rename
+9. Replace Values
+10. Replace Errors
+11. Fill-Down
+12. Fill-Up
+13. Pivot Column
+14. Unpivot Column
+15. Move
+16. Convert to List
+17. Split Columns
+18. Format
+19. Extract Options
+20. Keep Rows
+21. Remove Rows
+22. Choose Column
+23. Remove Columns
