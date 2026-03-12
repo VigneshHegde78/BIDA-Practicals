@@ -1,56 +1,49 @@
-install.packages("dplyr")
-install.packages("mlbench")
-install.packages("caTools")
-install.packages("ROCR")
-install.packages("caret")
-
+install.packages(c("dplyr", "mlbench", "caTools", "ROCR", "caret", "ggplot2"))
 library(dplyr)
 library(mlbench)
 library(caTools)
 library(ROCR)
 library(caret)
 library(ggplot2)
+
 data("PimaIndiansDiabetes")
-?PimaIndiansDiabetes
-View(PimaIndiansDiabetes)
 data1 = PimaIndiansDiabetes
-str(data1)
-summary(data1)
-names(data1)
-data1$diabetes = gsub("Pos", "1", data1$diabetes)
-data1$diabetes = gsub("Neg", "0", data1$diabetes)
+
+# Convert target variable to binary factor (Added ignore.case to prevent case sensitivity bugs)
+data1$diabetes = gsub("Pos", "1", data1$diabetes, ignore.case = TRUE)
+data1$diabetes = gsub("Neg", "0", data1$diabetes, ignore.case = TRUE)
 data1$diabetes = as.factor(data1$diabetes)
 summary(data1)
-attach(data1)
 
-split <- sample.split(data1,SplitRatio = 0.8) # split data at 80%
-split
+# attach(data1) # Note: Using attach() is generally discouraged as it can cause variable masking.
 
-train_reg <- subset(data1,split == "True") # new dataset with 80% data
-test_reg <- subset(data1,split == "False") # new dataset with 20% data
+# Train/Test Split
+set.seed(123) # Good practice to set a seed for reproducibility
+split <- sample.split(data1$diabetes, SplitRatio = 0.8)
 
-#Training Model
-logistic_model <- glm(diabetes ~ pregnant + glucose + pressure + triceps + insulin + mass + pedigree + age, family = "binomial")
-logistic_model
+# FIXED: 'True' and 'False' must be boolean/logical (TRUE / FALSE), not strings
+train_reg <- subset(data1, split == TRUE) 
+test_reg <- subset(data1, split == FALSE)
 
-summary(logistic_model) # summary of the model
-
+# Training Model
+# FIXED: Added 'data = train_reg' so it actually trains on the split!
+logistic_model <- glm(diabetes ~ pregnant + glucose + pressure + triceps + insulin + mass + pedigree + age, 
+                      data = train_reg, 
+                      family = "binomial")
+summary(logistic_model) 
 
 # Predict test data based on model
 test_reg$predict_reg <- predict(logistic_model, test_reg, type = "response")
 
-View(test_reg)
+# Convert probabilities to 0 or 1
+test_reg$predict_reg1 <- ifelse(test_reg$predict_reg > 0.5, 1, 0)
 
-
-# Based on probabilities derived, convert to 0 or 1 i.e No or Yes
-test_reg$predict_reg1 <- ifelse(test_reg$predict_reg >0.5, 1, 0)
-View(test_reg)
-
-# Plot logistic regression (sigmoid) curve
+# Plot logistic regression curve
 ggplot(test_reg, aes(x=pregnant + glucose + pressure + triceps + insulin + mass + pedigree + age, y=predict_reg1)) + 
-  geom_point(alpha=.5)+ stat_smooth(method = "glm",se=FALSE, method.args = list(family = binomial))
+  geom_point(alpha=.5) + 
+  stat_smooth(method = "glm", se=FALSE, method.args = list(family = binomial))
 
-# Evaluatng model accuracy using confusion matrix
+# Evaluate model accuracy using confusion matrix
 confmat = table(test_reg$diabetes, test_reg$predict_reg1)
 confusionMatrix(confmat, positive = "1", mode = "everything")
 
@@ -60,13 +53,13 @@ ROCPer <- performance(RocPred, measure = "tpr", x.measure = "fpr")
 
 auc <- performance(RocPred, measure = "auc")
 auc <- auc@y.values[[1]]
-auc
+print(paste("AUC:", auc))
 
 # Plotting ROC curve
-plot(ROCPer)
-plot(ROCPer, calorize = TRUE, print.cutoffs.at = seq(0.1, by = 0.1), main = "ROC CURVE")
+# FIXED: Typo "calorize" changed to "colorize"
+plot(ROCPer, colorize = TRUE, print.cutoffs.at = seq(0.1, by = 0.1), main = "ROC CURVE")
 abline(a = 0, b = 1)
 
-
 auc <- round(auc, 4)
-legend(.6, .4, auc, title = "AUC",cex = 1)
+# FIXED: legend syntax improved for clarity
+legend(0.6, 0.4, legend = paste("AUC =", auc), title = "AUC", cex = 1)

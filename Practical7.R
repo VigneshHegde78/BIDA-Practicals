@@ -3,25 +3,26 @@ install.packages("rpart.plot")
 library(rpart)
 library(rpart.plot)
 
-?iris
-View(iris)
+# Load and explore data
+data(iris)
 summary(iris)
 table(iris$Species)
 
+# Train/Test Split
 set.seed(1212)
 s = sample(c(1:150), size = 100)
 iris.train = iris[s,]
 iris.test = iris[-s,]
 
 table(iris.train$Species)
-iris.train
 
-?rpart
-names(iris)
-m1 = rpart(iris.train$Species~., data = iris.train, method = "class")
-m1
+# Build the model using the training data
+m1 = rpart(Species ~ ., data = iris.train, method = "class")
+print(m1)
 rpart.plot(m1)
-iris.test$predict = predict(m1, iris.test, type = "class")
-View(iris.test)
-table(iris.test$Species, iris.test$predict)
 
+# Predict on the test data
+iris.test$predict = predict(m1, iris.test, type = "class")
+
+# Evaluate results
+table(iris.test$Species, iris.test$predict)
